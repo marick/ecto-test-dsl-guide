@@ -1,25 +1,25 @@
 # A demonstration that I hope convinces you to read on
 
-
-Here is some text
-and a broken line
-
-{% hint style="info" %}
-This demonstration, like all the ones in this how-to, uses [https://github.com/marick/tts\_ecto\_example](https://github.com/marick/tts_ecto_example). It's a sample project that contains Ecto schemas in the `lib` directory and example files in `test`. For this page, look at the schema in [`named.ex`](https://github.com/marick/tts_ecto_example/blob/main/lib/schemas_10_basics/named.ex)and the examples in [`named_10_insert_examples.ex`](https://github.com/marick/tts_ecto_example/blob/main/test/schemas_10_basics/named_10_insert_examples.ex)`.`
+{% hint style="info" %} This demonstration, like all the ones in this
+how-to, uses
+[https://github.com/marick/example_for_ecto_test_dsl](https://github.com/marick/example_for_ecto_test_dsl). It's
+a sample project that contains Ecto schemas in the `lib` directory and
+example files in `test`. For this page, look at the schema in
+[`named.ex`](https://github.com/marick/example_for_ecto_test_dsl/blob/main/lib/schemas_10_basics/named.ex)and
+the examples in
+[`named_10_insert_examples.ex`](https://github.com/marick/example_for_ecto_test_dsl/blob/main/test/schemas_10_basics/named_10_insert_examples.ex)`.`
 {% endhint %}
 
-{% hint style="info" %}
-You can find instructions for setting up the library at its [Github page](https://github.com/marick/transformer_test_support). For `tts_ecto_example`, note that a server is started in [`test_helper.exs`](https://github.com/marick/tts_ecto_example/blob/main/test/test_helper.exs)and the [`mix.exs`](https://github.com/marick/tts_ecto_example/blob/main/mix.exs#L24) file instructs the compiler to compile`.ex` files within the`test` subdirectory. \(Example files end in`.ex.)`
-{% endhint %}
 
-Let's test the form-handling code for this structure, which is to be filled out with the data from an HTTP Post:
+
+Let's test the form-handling code for this schema:
 
 ```elixir
 defmodule App.Schemas10.Named do
   # ...
 
   schema "named" do
-    field :name, :string    // must be unique
+    field :name, :string    // DB constraint: must be unique
     field :age, :integer
     field :date_string, :string, virtual: true
 
@@ -32,20 +32,28 @@ defmodule App.Schemas10.Named do
   def changeset(struct, params) do # ...
 ```
 
-There is one automatic conversion \(line 3: from a string to an integer\) and two calculated conversions: producing a `Date` value from a string \(line 7\) and then calculating the difference between that `Date` and the start of 2000 \(line 8\). 
+There is one automatic conversion \(line 3: from a string to an
+integer\) and two calculated conversions: producing a `Date` value
+from a string \(line 7\) and then calculating the difference between
+that `Date` and the start of 2000 \(line 8\).
 
-In the rest of this page, we'll mostly testing the `changeset` function. In the jargon I'll use from now own, we'll be _**checking**_ particular _**examples**_ by passing input _**parameters**_ through a multi-step _**workflow**._ That's done in a single module, `Examples.Schemas10.Named.Insert`. It begins by providing a little information about what the module's examples are for. I won't describe all that here, but I suggest you skim it to get a first look at what kinds of things can be varied from module to module:
+In the rest of this page, we'll mostly be testing the `changeset`
+function. In the jargon I'll use from now own, we'll be _**checking**_
+particular _**examples**_ by passing input _**parameters**_ through a
+multi-step _**workflow**._ That's done in a single module,
+`Examples.Schemas10.Named.Insert`. It begins by providing a little
+information about what the module's examples are for. I won't describe
+that information now.
 
 ```elixir
   alias App.Schemas10.Named, as: Named
-  use TransformerTestSupport.Variants.EctoClassic
-  # ...
-  
+  use TransformerTestSupport.Variants.EctoClassic.Insert
+
+  def create_test_data do 
     start(
       module_under_test: Named,
-      repo: App.Repo,
-      action: :insert
-    )
+      repo: App.Repo
+    ) |>
 ```
 
 ## The first example
@@ -53,17 +61,18 @@ In the rest of this page, we'll mostly testing the `changeset` function. In the 
 Instead of worrying about setup, let's start with an example of successful insertion, which we'll name `:bossie`. That looks like this:
 
 ```elixir
-defmodule Examples.Schemas10.Named.Insert do
 # ...
-  bossie: [
-    params(name: "Bossie", age: 10, date_string: "2000-01-10"),
-    changeset(changes: [
-           name: "Bossie", age: 10, date_string: "2000-01-10",
-           date: ~D[2000-01-10], days_since_2000: 9])
-  ]
+   bossie: [
+     params(name: "Bossie", age: 10, date_string: "2000-01-10"),
+     changeset(changes: [
+                 name: "Bossie", age: 10, date_string: "2000-01-10",
+                 date: ~D[2000-01-10], days_since_2000: 9])
 ```
 
-Line 4 gives the parameters provided by the outside world \(in this case, an HTML form\). For your convenience, the keys and values don't have to be strings. They'll be stringified for you so they look like the parameters Phoenix delivers to controllers,  which you can see like this:
+Line 4 gives the parameters provided by the outside world \(in this
+case, an HTML form\). For your convenience, the keys don't
+have to be strings. They'll be stringified for you so they look like
+the parameters Phoenix delivers to controllers. You can see that like this:
 
 ```elixir
 $ MIX_ENV=test iex -S mix
@@ -75,13 +84,21 @@ iex(3)> Tester.params(:bossie)
 
 ```
 
-You don't normally work with an example's params explicitly. Indeed, you typically only refer to a specific example when it's failing. A single test file \(I call it `all_examples_test.ex` \) tries all the examples. Its key line is this:
+Nested arrays and maps are also stringified.
+
+You don't normally work with an example's params explicitly. Indeed,
+you typically only refer to a specific example when it's failing. A
+single test file \(I call it `all_examples_test.ex` \) tries all the
+examples. Its key line is this:
 
 ```elixir
   check_examples_in_files("test/*/*examples.ex")
 ```
 
-That generates an ExUnit `test` for each example. \(That way, a failure in one example doesn't prevent other examples from being checked. Further, examples are isolated from each other using the usual `Ecto.Adapters.SQL.Sandbox` mechanism.\)
+That generates an ExUnit `test` for each example. \(That way, a
+failure in one example doesn't prevent other examples from being
+checked. Further, examples are isolated from each other using the
+usual `Ecto.Adapters.SQL.Sandbox` mechanism.\)
 
 Checking `:bossie` means: 
 
