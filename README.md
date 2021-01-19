@@ -1,8 +1,8 @@
----
-description: This page assumes you know Ecto.
----
-
 # A demonstration that I hope convinces you to read on
+
+
+Here is some text
+and a broken line
 
 {% hint style="info" %}
 This demonstration, like all the ones in this how-to, uses [https://github.com/marick/tts\_ecto\_example](https://github.com/marick/tts_ecto_example). It's a sample project that contains Ecto schemas in the `lib` directory and example files in `test`. For this page, look at the schema in [`named.ex`](https://github.com/marick/tts_ecto_example/blob/main/lib/schemas_10_basics/named.ex)and the examples in [`named_10_insert_examples.ex`](https://github.com/marick/tts_ecto_example/blob/main/test/schemas_10_basics/named_10_insert_examples.ex)`.`
