@@ -125,9 +125,13 @@ As written, the `:bossie` example checks out, but here's what an error looks lik
 
 ![](.gitbook/assets/first-error-view.png)
 
-Note that errors are reported in the usual ExUnit style, complete with colorized differences. When there's a changeset error, the changeset itself is also printed \(on a single line, to save space\). 
+Note that errors are reported in the usual ExUnit style, complete with
+colorized differences. When there's a changeset error, the changeset
+itself is also printed \(on a single line, which saves space if your
+editor doesn't wrap test failure lines\).
 
-Once I find an error, I usually use `one_example_test.exs` when rerunning it \(and when using TDD to test-driven new code\). That looks like this:
+If I break code such that many examples fail, I'll use
+`one_example_test.exs` to rerun just it. That file looks like this:
 
 ```elixir
 defmodule Examples.OneExampleTest do
@@ -135,11 +139,13 @@ defmodule Examples.OneExampleTest do
 
   test "one" do 
     alias Examples.Schemas10.Named.Insert.Tester
-    Tester.check_workflow(:bossie)
+    Tester.check_workflow(:bossie, trace: false)
   end
 end
 
 ```
+
+(I'll discuss the `trace` option below.)
 
 #### Note
 
@@ -152,9 +158,14 @@ There's a lot of redundancy between the `params` and the `changes`:
            date: ~D[2000-01-10], days_since_2000: 9]
 ```
 
-Do different examples have to keep saying that the resulting `changeset` has values the same as in the params? Or that the `date` is the `Date` version of `date_string`? These things are true for all \(valid\) examples, so why repeat them in each one?
+Does each example have to say that the resulting
+`changeset` has values the same as in the params? Or that the `date`
+is the `Date` version of `date_string`? These things are true for all
+\(valid\) examples, so why repeat them in each one?
 
-In fact, you don't. Later, you'll learn how to state such facts once and only once. After that, lines 2 through 4 above could completely go away. The same changeset checks would be generated for you.
+In fact, you don't. Later, you'll learn how to state such facts once
+and only once. After that, lines 2 through 4 above could completely go
+away. The same changeset checks would be generated for you.
 
 ## Validation failures
 
@@ -169,11 +180,19 @@ Here's an example showing the handling of a misformatted `date_string`:
     )]
 ```
 
-Note the use of `params_like` on line 2. If you're testing an error case, you don't want to laboriously type in all the valid parameters. 
+Note the use of `params_like` on line 2. If you're checking error
+handling, you might not want to manually repeat all the valid
+parameters. More important, to my mind, is that the example is not
+*about* Bossie's age, so listing it explicitly makes it harder to
+understand what the test *is* about.
 
-Again, just running this would produce no output because the example passes the check. However, suppose the `date_string` is changed to the valid `"2001-01-01"`:
+Tests are *scanned* more often than they're read,
+so they should be optimized for scannability.
 
-![](.gitbook/assets/screen-shot-2020-11-24-at-12.46.36-pm.png)
+Again, just running this would produce no output because the example
+passes the check. However, suppose the `date_string` is changed to be valid ISO8601 instead of invalid:
+
+![](.gitbook/assets/validation-error.png)
 
 #### Workflows
 
