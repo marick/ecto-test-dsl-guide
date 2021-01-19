@@ -123,7 +123,7 @@ Here's the example again:
 
 As written, the `:bossie` example checks out, but here's what an error looks like:
 
-![](.gitbook/assets/screen-shot-2020-11-24-at-12.27.29-pm.png)
+![](.gitbook/assets/first-error-view.png)
 
 Note that errors are reported in the usual ExUnit style, complete with colorized differences. When there's a changeset error, the changeset itself is also printed \(on a single line, to save space\). 
 
